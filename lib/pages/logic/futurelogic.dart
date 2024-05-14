@@ -3,7 +3,7 @@ import 'package:interceptorexample/dio/dio.dart';
 import 'package:interceptorexample/model/userDataModel.dart';
 
 final futureDataProvider = FutureProvider<Data>((ref) async {
-  final dio = ref.watch(dioProvider);
+  final dio = ref.read(dioProvider);
   final response = await dio.get('/posts');
   if (response.statusCode == 200) {
     return Data.fromJson(response.data);

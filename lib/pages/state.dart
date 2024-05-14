@@ -3,15 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:interceptorexample/pages/logic/statellogic.dart';
 
-class FuturesFromStateNotifier extends ConsumerWidget {
+class FuturesFromStateNotifier extends ConsumerStatefulWidget {
   const FuturesFromStateNotifier({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.read(postNotifierProvider.notifier).fetchData(ref);
-    // Watch the StateNotifierProvider
-    final asyncValue = ref.watch(postNotifierProvider);
+  ConsumerState<FuturesFromStateNotifier> createState() =>
+      _FuturesFromStateNotifierState();
+}
 
+class _FuturesFromStateNotifierState
+    extends ConsumerState<FuturesFromStateNotifier> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      ref.read(postNotifierProvider.notifier).fetchData();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final getdata = ref.watch(postNotifierProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -26,49 +38,73 @@ class FuturesFromStateNotifier extends ConsumerWidget {
           icon: Icon(Icons.arrow_back),
         ),
       ),
-      body: ListView.builder(
-        itemCount: asyncValue.length,
-        itemBuilder: (context, index) {
-          final user = asyncValue[index];
-          return Card(
-            margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-            elevation: 4.0,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'User ID: ${user.userid}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                  SizedBox(height: 4.0),
-                  Text(
-                    'ID: ${user.id}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.0,
-                    ),
-                  ),
-                  SizedBox(height: 4.0),
-                  Text(
-                    'Title: ${user.title}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                    ),
-                  ),
-                  SizedBox(height: 8.0),
-                  Text(user.body),
-                ],
-              ),
-            ),
+
+      body: Container(
+        padding: EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/QWc9.gif"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: getdata.when(initial: () {
+          return Center(child: CircularProgressIndicator());
+        }, loading: (loading) {
+          return Center(
+            child: CircularProgressIndicator(),
           );
-        },
+        }, error: (error) {
+          return Center(
+            child: Text("error"),
+          );
+        }, success: (data, extra) {
+          return ListView.builder(
+            itemCount: data!.users.length,
+            // separatorBuilder: (BuildContext context, int index) => Divider(),
+            itemBuilder: (context, index) {
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Text(
+                    data!.users[index].title,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                  subtitle: Text(data!.users[index].body),
+                ),
+              );
+            },
+          );
+        }),
       ),
+      // body: getdata.maybeWhen(
+      //   orElse: () {
+      //     return Center(
+      //       child: CircularProgressIndicator(),
+      //     );
+      //   },
+
+      //   // loading: (loading) {
+      //   //   return Center(
+      //   //     child: CircularProgressIndicator(),
+      //   //   );
+      //   // },
+      //   success: (data, extra) {
+      //     return ListView.builder(
+      //       itemCount: data!.users.length,
+      //       itemBuilder: (context, index) {
+      //         return ListTile(
+      //           title: Text(data!.users[index].title),
+      //           subtitle: Text(data!.users[index].body),
+      //         );
+      //       },
+      //     );
+      //   },
+      //   error: (data) {
+      //     return Center(
+      //       child: Text('Error: '),
+      //     );
+      //   },
+      // )
     );
   }
 }
